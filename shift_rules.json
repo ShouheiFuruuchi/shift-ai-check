@@ -1,0 +1,385 @@
+{
+  "meta": {
+    "name": "shift_notation_interpreter",
+    "domain": "shift",
+    "version": "1.0.1",
+    "language": "ja-JP",
+    "timezone": "Asia/Tokyo"
+  },
+  "objective": {
+    "goal": "シフト記載の表記揺れを正規化し、勤務/休み/ヘルプ/複合移動を機械的に解釈して構造化する",
+    "non_goals": [
+      "番手（〇△✕）の具体時刻確定（別マスタが必要）",
+      "店舗略称→正式名/店舗CDの生成ロジックの変更（store_master参照前提）"
+    ]
+  },
+  "io": {
+    "input": {
+      "type": "object",
+      "fields": [
+        { "name": "raw_text", "type": "string", "required": true },
+        {
+          "name": "context",
+          "type": "object",
+          "required": false,
+          "fields": [
+            { "name": "home_store", "type": "string", "required": false },
+            {
+              "name": "staff_type",
+              "type": "string",
+              "required": false,
+              "enum": ["store_staff", "hq_staff", "unknown"]
+            }
+          ]
+        }
+      ]
+    },
+    "output": {
+      "type": "object",
+      "schema": {
+        "normalized_text": "string",
+        "labels": "array",
+        "entities": {
+          "home_store": "string|null",
+          "help_store": "string|null",
+          "home_store_cd": "number|null",
+          "help_store_cd": "number|null",
+          "shift_type": "early|middle|late|null",
+          "start_time": "HH:MM|null",
+          "end_time": "HH:MM|null",
+          "is_until_last": "boolean",
+          "leave_type": "off_day|paid_leave|requested_off|null",
+          "segments": "array"
+        },
+        "confidence": "number",
+        "errors": "array"
+      }
+    }
+  },
+  "constraints": {
+    "must": [
+      "正規化（全半角、Unicode、区切り記号）を先に行う",
+      "例外（休み・有給・希望休）を最優先で確定する",
+      "複合移動（店舗名を含む）を時間単体より優先して解釈する",
+      "曖昧な場合はerrorsに理由を入れ、confidenceを下げる",
+      "店舗CD付与はstore_master参照で行い、推測しない"
+    ],
+    "must_not": [
+      "根拠なく時刻や店舗名を補完しない",
+      "解釈不能な文字列を無理に勤務扱いにしない"
+    ],
+    "priority_order": [
+      "exceptions",
+      "canonicalize",
+      "composite_moves",
+      "help_notation",
+      "time_range",
+      "time_until_last",
+      "shift_symbol",
+      "fallback",
+      "postprocess_store_resolution"
+    ]
+  },
+  "definitions": {
+    "canonicalization": {
+      "unicode_normalize": "NFKC",
+      "trim": true,
+      "collapse_spaces": true,
+      "normalize_separators": {
+        "from": ["〜", "～", "~", "－", "ー", "―", "‐", "–", "—", "−", "ｰ"],
+        "to": "-"
+      }
+    },
+    "tokens": {
+      "leave": {
+        "off_day": ["公休"],
+        "paid_leave": ["有給"],
+        "requested_off": ["/", "／"]
+      },
+      "shift_symbol_map": [
+        { "canonical": "〇", "shift_type": "early", "aliases": ["〇", "○", "◯", "O", "o"] },
+        { "canonical": "△", "shift_type": "middle", "aliases": ["△", "▲"] },
+        { "canonical": "✕", "shift_type": "late", "aliases": ["✕", "×", "✗", "X", "x"] }
+      ]
+    }
+  },
+  "rules": [
+    {
+      "id": "E-001",
+      "kind": "exception",
+      "name": "未記入は休み",
+      "priority": 1000,
+      "when": { "is_empty_or_whitespace": true },
+      "then": {
+        "set": { "entities.leave_type": "off_day", "entities.is_until_last": false },
+        "labels_add": ["leave"],
+        "normalize": { "normalized_text": "" },
+        "confidence": 0.95
+      }
+    },
+    {
+      "id": "E-002",
+      "kind": "exception",
+      "name": "公休/有給/希望休の確定",
+      "priority": 990,
+      "when": {
+        "any_of": [
+          { "contains_any": ["公休"] },
+          { "contains_any": ["有給"] },
+          { "equals_any": ["/", "／"] }
+        ]
+      },
+      "then": {
+        "set_from_match": [
+          { "if_contains": "公休", "set": { "entities.leave_type": "off_day" } },
+          { "if_contains": "有給", "set": { "entities.leave_type": "paid_leave" } },
+          { "if_equals_any": ["/", "／"], "set": { "entities.leave_type": "requested_off" } }
+        ],
+        "labels_add": ["leave"],
+        "confidence": 0.98
+      }
+    },
+    {
+      "id": "R-100",
+      "kind": "rule",
+      "name": "正規化前処理（NFKC・区切り統一・空白圧縮）",
+      "priority": 900,
+      "when": { "always": true },
+      "then": {
+        "normalize_text_pipeline": [
+          "unicode_nfkc",
+          "trim",
+          "collapse_spaces",
+          "normalize_separators"
+        ]
+      }
+    },
+    {
+      "id": "R-200",
+      "kind": "rule",
+      "name": "複合移動（店舗スタッフ）：11-富士見15:00-20:00",
+      "priority": 850,
+      "when": {
+        "regex": "^(?<start1>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*(?<store>[\\p{L}\\p{N}ぁ-んァ-ヶ一-龠々・]{1,12})\\s*(?<start2>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*(?<end2>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)$"
+      },
+      "then": {
+        "labels_add": ["composite_move", "help"],
+        "set": {
+          "entities.help_store": "{store}",
+          "entities.start_time": "{start1}",
+          "entities.end_time": "{end2}",
+          "entities.is_until_last": false
+        },
+        "set_segments": [
+          {
+            "segment_type": "home_store_work",
+            "start_time": "{start1}",
+            "end_time": "{start2}",
+            "store": "{context.home_store|null}"
+          },
+          {
+            "segment_type": "help_store_work",
+            "start_time": "{start2}",
+            "end_time": "{end2}",
+            "store": "{store}"
+          }
+        ],
+        "confidence": 0.9
+      }
+    },
+    {
+      "id": "R-210",
+      "kind": "rule",
+      "name": "複合移動（本部スタッフ）：柏11-富士見15:00-20:00",
+      "priority": 845,
+      "when": {
+        "regex": "^(?<store1>[\\p{L}\\p{N}ぁ-んァ-ヶ一-龠々・]{1,12})\\s*(?<start1>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*(?<store2>[\\p{L}\\p{N}ぁ-んァ-ヶ一-龠々・]{1,12})\\s*(?<start2>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*(?<end2>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)$"
+      },
+      "then": {
+        "labels_add": ["composite_move", "help"],
+        "set": {
+          "entities.home_store": "{store1}",
+          "entities.help_store": "{store2}",
+          "entities.start_time": "{start1}",
+          "entities.end_time": "{end2}",
+          "entities.is_until_last": false
+        },
+        "set_segments": [
+          { "segment_type": "store1_work", "start_time": "{start1}", "end_time": "{start2}", "store": "{store1}" },
+          { "segment_type": "store2_work", "start_time": "{start2}", "end_time": "{end2}", "store": "{store2}" }
+        ],
+        "confidence": 0.9
+      }
+    },
+    {
+      "id": "R-300",
+      "kind": "rule",
+      "name": "ヘルプ記号：富士見△ / 富士見〇 / 富士見✕",
+      "priority": 800,
+      "when": {
+        "regex": "^(?<store>[\\p{L}\\p{N}ぁ-んァ-ヶ一-龠々・]{1,12})(?<symbol>〇|○|◯|O|o|△|▲|✕|×|✗|X|x)$"
+      },
+      "then": {
+        "labels_add": ["help"],
+        "set": {
+          "entities.help_store": "{store}",
+          "entities.shift_type": {
+            "map_by_alias": { "source": "{symbol}", "mapping_ref": "definitions.tokens.shift_symbol_map" }
+          },
+          "entities.is_until_last": false
+        },
+        "confidence": 0.9
+      }
+    },
+    {
+      "id": "R-400",
+      "kind": "rule",
+      "name": "時間帯：11:00-18:00 / 1100-1800 / 11-18 / 11-18:00",
+      "priority": 700,
+      "when": {
+        "regex": "^(?<start>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*(?<end>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)$"
+      },
+      "then": {
+        "labels_add": ["time_range"],
+        "set": {
+          "entities.start_time": { "normalize_time": "{start}" },
+          "entities.end_time": { "normalize_time": "{end}" },
+          "entities.is_until_last": false
+        },
+        "confidence": 0.9
+      }
+    },
+    {
+      "id": "R-410",
+      "kind": "rule",
+      "name": "ラスト：11:00- / 11-（終わり時刻なし）",
+      "priority": 690,
+      "when": { "regex": "^(?<start>(?:[01]?\\d|2[0-3])(?::?[0-5]\\d)?)\\s*-\\s*$" },
+      "then": {
+        "labels_add": ["until_last"],
+        "set": { "entities.start_time": { "normalize_time": "{start}" }, "entities.end_time": null, "entities.is_until_last": true },
+        "confidence": 0.85
+      }
+    },
+    {
+      "id": "R-500",
+      "kind": "rule",
+      "name": "番手記号単体：〇 / △ / ✕",
+      "priority": 600,
+      "when": { "regex": "^(?<symbol>〇|○|◯|O|o|△|▲|✕|×|✗|X|x)$" },
+      "then": {
+        "labels_add": ["shift_symbol"],
+        "set": {
+          "entities.shift_type": {
+            "map_by_alias": { "source": "{symbol}", "mapping_ref": "definitions.tokens.shift_symbol_map" }
+          },
+          "entities.is_until_last": false
+        },
+        "confidence": 0.85
+      }
+    },
+    {
+      "id": "R-900",
+      "kind": "fallback",
+      "name": "解釈不能は休み扱い（不明記号は休みカウント）",
+      "priority": 100,
+      "when": { "always": true },
+      "then": {
+        "labels_add": ["fallback"],
+        "set": { "entities.leave_type": "off_day", "entities.is_until_last": false },
+        "errors_add": [{ "code": "UNPARSEABLE", "message": "ルールに一致せず解釈不能のため休み扱い" }],
+        "confidence": 0.4
+      }
+    }
+  ],
+  "postprocess": {
+    "finalize": [
+      {
+        "name": "store_resolution",
+        "description": "store_master.jsonを参照して home_store/help_store を略称へ正規化し、店舗CDを付与する",
+        "store_master_ref": "EXTERNAL:store_master.json",
+        "helpers": {
+          "normalize_key": {
+            "steps": ["unicode_nfkc", "trim", "collapse_spaces", { "remove": ["店"] }]
+          }
+        },
+        "rules": [
+          {
+            "when": { "entities.help_store": { "not_null": true } },
+            "then": {
+              "set": {
+                "entities.help_store": {
+                  "resolve_store_abbrev": {
+                    "value": "{entities.help_store}",
+                    "stores_ref": "EXTERNAL:store_master.json/stores",
+                    "match_order": ["abbrev_exact", "alias_exact", "abbrev_normalized", "alias_normalized"]
+                  }
+                },
+                "entities.help_store_cd": {
+                  "resolve_store_cd_full": {
+                    "value": "{entities.help_store}",
+                    "stores_ref": "EXTERNAL:store_master.json/stores",
+                    "match_order": ["abbrev_exact", "alias_exact", "abbrev_normalized", "alias_normalized"]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "when": { "entities.home_store": { "not_null": true } },
+            "then": {
+              "set": {
+                "entities.home_store": {
+                  "resolve_store_abbrev": {
+                    "value": "{entities.home_store}",
+                    "stores_ref": "EXTERNAL:store_master.json/stores",
+                    "match_order": ["abbrev_exact", "alias_exact", "abbrev_normalized", "alias_normalized"]
+                  }
+                },
+                "entities.home_store_cd": {
+                  "resolve_store_cd_full": {
+                    "value": "{entities.home_store}",
+                    "stores_ref": "EXTERNAL:store_master.json/stores",
+                    "match_order": ["abbrev_exact", "alias_exact", "abbrev_normalized", "alias_normalized"]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "when": {
+              "any_of": [
+                { "entities.help_store": { "not_null": true }, "entities.help_store_cd": { "is_null": true } },
+                { "entities.home_store": { "not_null": true }, "entities.home_store_cd": { "is_null": true } }
+              ]
+            },
+            "then": {
+              "errors_add": [
+                {
+                  "code": "STORE_NOT_FOUND",
+                  "message": "store_masterに存在しない略称/別名のため店舗CDを確定できません（aliases追記 or 入力修正）"
+                }
+              ],
+              "confidence_multiply": 0.9
+            }
+          }
+        ]
+      },
+      {
+        "name": "normalized_text_builder",
+        "description": "entitiesから normalized_text を組み立てる",
+        "rules": [
+          { "when": { "entities.leave_type": "requested_off" }, "then": { "normalized_text": "/" } },
+          { "when": { "entities.leave_type": "paid_leave" }, "then": { "normalized_text": "有給" } },
+          { "when": { "entities.leave_type": "off_day" }, "then": { "normalized_text": "公休" } },
+          { "when": { "labels_contains": "time_range" }, "then": { "normalized_text": "{entities.start_time}-{entities.end_time}" } },
+          { "when": { "labels_contains": "until_last" }, "then": { "normalized_text": "{entities.start_time}-LAST" } }
+        ]
+      }
+    ]
+  },
+  "quality": {
+    "validation": { "required_fields": ["entities", "confidence", "errors", "labels"], "error_on_missing": true },
+    "confidence_policy": { "high_threshold": 0.85, "medium_threshold": 0.6, "low_threshold": 0.4 }
+  }
+}
