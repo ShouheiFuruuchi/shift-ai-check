@@ -1,0 +1,348 @@
+{
+  "meta": {
+    "name": "business_hours_and_shift_times_master",
+    "version": "from_txt",
+    "timezone": "Asia/Tokyo",
+    "source": {
+      "file": "店舗営業時間_出勤時間一覧データ.txt",
+      "format": "pipe_delimited_table",
+      "columns": [
+        "store_cd_full",
+        "store_full_name",
+        "biz_hours_weekday",
+        "biz_hours_sat",
+        "biz_hours_sun_holiday",
+        "shift_early",
+        "shift_middle",
+        "shift_late"
+      ]
+    }
+  },
+  "time_format": "HH:MM",
+  "entities": {
+    "stores": [
+      {
+        "store_cd_full": 1001009,
+        "store_full_name": "FUN千葉C-one",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "20:00" },
+          "sun_holiday": { "open": "10:00", "close": "20:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "10:30", "end": "20:00" },
+          "late": { "start": "11:00", "end": "20:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001028,
+        "store_full_name": "FUNスマーク伊勢崎",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "20:00" },
+          "sun_holiday": { "open": "10:00", "close": "20:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "11:00", "end": "20:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001039,
+        "store_full_name": "FUNイオンモールむさし村山",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001044,
+        "store_full_name": "FUNイオンモール太田",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001045,
+        "store_full_name": "FUNイオンモール水戸内原",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001049,
+        "store_full_name": "FUNイオンモール幕張新都心",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001053,
+        "store_full_name": "FUNイオンモール高崎",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001054,
+        "store_full_name": "FUNエミテラス所沢",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001008,
+        "store_full_name": "FUN柏",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "20:00" },
+          "sun_holiday": { "open": "10:00", "close": "20:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "10:30", "end": "20:00" },
+          "late": { "start": "11:00", "end": "20:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001034,
+        "store_full_name": "FUNららぽーと富士見",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001036,
+        "store_full_name": "FUNイオンレイクタウン",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001038,
+        "store_full_name": "FUNららぽーと海老名",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "20:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001040,
+        "store_full_name": "FUNららぽーと湘南平塚",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "20:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "11:00", "end": "20:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001047,
+        "store_full_name": "FUNラゾーナ川崎プラザ",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001048,
+        "store_full_name": "FUNららぽーと新三郷",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001042,
+        "store_full_name": "FUNイオンモール大高",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001043,
+        "store_full_name": "FUNららぽーと愛知東郷",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "20:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001046,
+        "store_full_name": "FUNららぽーとEXPOCITY",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001050,
+        "store_full_name": "FUNイオンモール各務原",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001051,
+        "store_full_name": "FUNららぽーと堺",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001052,
+        "store_full_name": "FUNイオンモール四條畷",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001055,
+        "store_full_name": "FUN ＬＩＮＫＳ ＵＭＥＤＡ",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      },
+      {
+        "store_cd_full": 1001056,
+        "store_full_name": "FUNイオンモール岡山",
+        "business_hours": {
+          "weekday": { "open": "10:00", "close": "21:00" },
+          "sat": { "open": "10:00", "close": "21:00" },
+          "sun_holiday": { "open": "10:00", "close": "21:00" }
+        },
+        "shift_times": {
+          "early": { "start": "09:30", "end": "19:00" },
+          "middle": { "start": "11:00", "end": "20:30" },
+          "late": { "start": "12:00", "end": "21:30" }
+        }
+      }
+    ]
+  }
+}

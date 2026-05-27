@@ -1,0 +1,57 @@
+# ===== PC依存設定 =====
+path_settings.json
+
+# ===== Python キャッシュ =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== バックアップファイル =====
+*.bak
+*.bak2
+*.bak3
+
+# ===== 大容量 POS CSV（USB等で別途転送） =====
+販売伝票明細 (2024).csv
+販売伝票明細 (2025).csv
+
+# ===== 分析スイート出力フォルダ =====
+analysis_suite_output*/
+analysis_suite_output_*/
+sales_power_correlation_charts_*/
+
+# ===== 生成された集計・分析結果 CSV =====
+shift_loss.csv
+人員不足_売上ロス分析.csv
+売上ロス上位50.csv
+時間帯予算*.csv
+店舗別予算配分*.csv
+high_productivity_staff*.csv
+staff_tendency_analysis_*-*.csv
+staff_tendency_top20_*-*.csv
+staff_slot_score_productivity_*-*.csv
+staff_slot_score_productivity_top20_*-*.csv
+time_slot_aov_scoring_*-*.csv
+time_slot_aov_scoring_store_hour_*-*.csv
+sales_power_correlation_*-*.csv
+feedback_*_daily.csv
+feedback_*_store_hour.csv
+feedback_*_summary.csv
+product_feedback_*.csv
+all_staff_productivity*.csv
+attendance_summary_new.csv
+attendance_summary_verify.csv
+attendance_summary_with*.csv
+attendance_summary.before_*.csv
+
+# ===== 生成された Excel 出力 =====
+monthly_shift_df.xlsx
+feedback_*.xlsx
+2026*.xlsx
+
+# ===== 分析最適化出力フォルダ =====
+staffing_optimization_output*/
+
+# ===== その他の出力ファイル =====
+feedback_*.md
+product_feedback_*.md

@@ -1,0 +1,8 @@
+{
+  "shift_excel_dir": "%USERPROFILE%/Downloads",
+  "copyfile_path": "%USERPROFILE%/Desktop/TS/シフトコピー/SELECT_FILE.xlsm",
+  "timescheduler_path": "%USERPROFILE%/Desktop/TS/シフトコピー/TimeScheduler.xlsx",
+  "timescheduler_backup_path": "%USERPROFILE%/Desktop/TS/シフトコピー/保管/TimeScheduler.xlsx",
+  "budget_path": "%USERPROFILE%/Desktop/TS/シフトコピー/年間予算.xlsx",
+  "delivery_path": "%USERPROFILE%/Desktop/TS/シフトコピー/納品スケジュール.xlsx"
+}

@@ -1,21 +1,8 @@
 
 #このコードはシフトはAIにてシフト内容をチェックすっるコードです。
 # -*- coding: utf-8 -*-
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
-from reportlab.lib.pagesizes import A4, portrait
-from reportlab.platypus import Table, TableStyle
-from reportlab.lib.units import mm
-from reportlab.lib import colors
-
-from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver import ChromeOptions
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-
-from typing import Union, Optional, List
+from pathlib import Path
+from typing import List, Optional, Union
 
 #指示リスト作成
 import openpyxl as pyxl
@@ -23,36 +10,31 @@ import os
 import pandas as pd
 import datetime
 
-import pyodbc
 import jpholiday
 import shutil
 import time
-import requests
 
-USER = "FUN-PC132"
+from runtime_paths import resolve_shift_runtime_paths
+
+USER = os.environ.get("USERNAME") or Path.home().name
 
 SHOPCOUNT:int = 23
 
 
-def SHIFT_CREATE(y,m):
+def SHIFT_CREATE(USER,y,m):
     #===============================================================================================
-    # ONEDRIVE_PATH = 'C:/Users/FUN-PC132/OneDrive - 株式会社　ＴＲＩＮＩＴＹ　/シフト管理 - 遠藤 孝道 さんのファイル/{} {}月シフト 【販売部】 ver 18.xlsm'.format(int(y),int(m))
-    ONEDRIVE_PATH = 'C:/Users/FUN-PC132/OneDrive - 株式会社　ＴＲＩＮＩＴＹ　/遠藤 孝道 さんのファイル - シフト管理/{} {}月シフト 【販売部】 ver 18.xlsx'.format(int(y),int(m))
-    #ONEDRIVE_PATH = 'C:/Users/FUN-PC132/OneDrive - 株式会社　ＴＲＩＮＩＴＹ　/シフト管理 - 遠藤 孝道 さんのファイル/【20220703】 ' + str(int(y)) + ' ' + str(int(m)) + '月シフト 【販売部】 ver 17.xlsm'
-    COPYFILE_PATH = 'C:/Users/FUN-PC132/Desktop/TS/シフトコピー/SELECT_FILE.xlsm'
-    TIMESCHEDULER_FILE = 'C:/Users/FUN-PC132/Desktop/TS/シフトコピー/TimeScheduler.xlsx'
-    COPY_TIMESCHEDULER_FILE ='C:/Users/FUN-PC132/Desktop/TS/シフトコピー/保管/TimeScheduler.xlsx'
-    BugetFile_OneDrive = "C:/Users/FUN-PC132/OneDrive - 株式会社　ＴＲＩＮＩＴＹ　/遠藤 孝道 さんのファイル - シフト管理/年間予算.xlsx"
-    BugetFile = 'C:/Users/FUN-PC132/Desktop/TS/シフトコピー/年間予算.xlsx'
-    DeliveryFile_OneDrive = "C:/Users/FUN-PC132/OneDrive - 株式会社　ＴＲＩＮＩＴＹ　/遠藤 孝道 さんのファイル - シフト管理/納品スケジュール.xlsx"
-    DeliveryFile = "C:/Users/FUN-PC132/Desktop/TS/シフトコピー/納品スケジュール.xlsx"
-
-
-
+    runtime_paths = resolve_shift_runtime_paths(int(y), int(m))
+    ONEDRIVE_PATH = runtime_paths.shift_excel_path
+    COPYFILE_PATH = runtime_paths.copyfile_path
+    TIMESCHEDULER_FILE = runtime_paths.timescheduler_path
+    COPY_TIMESCHEDULER_FILE = runtime_paths.timescheduler_backup_path
+    BugetFile = runtime_paths.budget_path
+    DeliveryFile = runtime_paths.delivery_path
+    COPYFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(ONEDRIVE_PATH,COPYFILE_PATH)
-    shutil.copy(COPY_TIMESCHEDULER_FILE,TIMESCHEDULER_FILE)
-    shutil.copy(BugetFile_OneDrive,BugetFile)
-    shutil.copy(DeliveryFile_OneDrive,DeliveryFile)
+    #shutil.copy(COPY_TIMESCHEDULER_FILE,TIMESCHEDULER_FILE)
+    # shutil.copy(BugetFile_OneDrive,BugetFile)
+    # shutil.copy(DeliveryFile_OneDrive,DeliveryFile)
     time.sleep(5)
 
 
@@ -176,8 +158,8 @@ def SHIFT_CREATE(y,m):
     #＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
     COL_H = ['Z','AE','AJ','AO','AT','AY','BD','BI','BN','BS','BX','CC','CH','CM','CR','CW','DB','DG','DL','DQ'] #本部COL
-    # COL_T = ['AT','BB','BJ','BR','BZ','CH','CP','CX','DF','DN']#列修正20240228
-    COL_T = ['AU','AV','AW','AX','AY','AZ','BA','BB','BC','BD']#修正20250129
+    #COL_T = ['AT','BB','BJ','BR','BZ','CH','CP','CX','DF','DN']#旧20240228
+    COL_T = ['AU','AV','AW','AX','AY','AZ','BA','BB','BC','BD']#新20250129
 
     #調整値
     row_add_H = 0
@@ -470,7 +452,7 @@ def Buget(SHOP_KEYWORD,TargetDATE):
 
     }
 
-    buget_path = "C:/Users/FUN-PC132/Desktop/TS/シフトコピー/年間予算.xlsx"
+    buget_path = resolve_shift_runtime_paths(TargetDATE.year, TargetDATE.month).budget_path
     WB_buget = pyxl.load_workbook(buget_path,data_only=True)
     WS_buget = WB_buget["集計"]
 
@@ -515,7 +497,7 @@ def Delivery(SHOP_KEYWORD):
     "梅田":[30,47],
 
     }
-    delivery_path = "C:/Users/FUN-PC132/Desktop/TS/シフトコピー/納品スケジュール.xlsx"
+    delivery_path = resolve_shift_runtime_paths(Target_Day2.year, Target_Day2.month).delivery_path
     WB_deli = pyxl.load_workbook(delivery_path,data_only=True)
     WS_deli = WB_deli["納品データ"]
 
@@ -536,13 +518,13 @@ driver = "SQL Server"
 server ="FUN-PC132"
 database = 'TimeData'#時間帯売上実績
 trusted_connection = "yes"
-conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';POST=1433;Trusted_Connection='+trusted_connection+';')
+# conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';POST=1433;Trusted_Connection='+trusted_connection+';')
 
 
-cursor = conn.cursor()
+# cursor = conn.cursor()
 
-def SELECT_TODAY(y,m,d):
-    cursor.execute('SELECT * FROM  SalesData WHERE Year =' + str(y) + ' AND Month = ' + str(m) + ' AND Day = ' + str(d) + '')
+# def SELECT_TODAY(y,m,d):
+#     cursor.execute('SELECT * FROM  SalesData WHERE Year =' + str(y) + ' AND Month = ' + str(m) + ' AND Day = ' + str(d) + '')
 
 
 TimeSalesList = []
@@ -553,57 +535,57 @@ def SELECT(shop,year,month,day):
     shop = shop
 
 
-    cursor.execute("SELECT * FROM  TimeData WHERE Shop ='" + str(shop) + "' AND Year =" + str(year) + " AND Month = " + str(month) + " AND Day = " + str(day) + "")
-    #print(shop)
+    # cursor.execute("SELECT * FROM  TimeData WHERE Shop ='" + str(shop) + "' AND Year =" + str(year) + " AND Month = " + str(month) + " AND Day = " + str(day) + "")
+    # #print(shop)
     
-    try:
-        for row in cursor:
-            #print(row)
-            # row
-            timedata = pd.DataFrame({"店舗":[row[0]],"曜日特性":[row[5]],
-                                    "t8":[row[7]],
-                                    "t9":[row[8]],
-                                    "t10":[row[9]],
-                                    "t11":[row[10]],
-                                    "t12":[row[11]],
-                                    "t13":[row[12]],
-                                    "t14":[row[13]],
-                                    "t15":[row[14]],
-                                    "t16":[row[15]],
-                                    "t17":[row[16]],
-                                    "t18":[row[17]],
-                                    "t19":[row[18]],
-                                    "t20":[row[19]],
-                                    "t21":[row[20]],
-                                    "t22":[row[21]],
+    # try:
+    #     for row in cursor:
+    #         #print(row)
+    #         # row
+    #         timedata = pd.DataFrame({"店舗":[row[0]],"曜日特性":[row[5]],
+    #                                 "t8":[row[7]],
+    #                                 "t9":[row[8]],
+    #                                 "t10":[row[9]],
+    #                                 "t11":[row[10]],
+    #                                 "t12":[row[11]],
+    #                                 "t13":[row[12]],
+    #                                 "t14":[row[13]],
+    #                                 "t15":[row[14]],
+    #                                 "t16":[row[15]],
+    #                                 "t17":[row[16]],
+    #                                 "t18":[row[17]],
+    #                                 "t19":[row[18]],
+    #                                 "t20":[row[19]],
+    #                                 "t21":[row[20]],
+    #                                 "t22":[row[21]],
 
-                                    })
+    #                                 })
             
-            TimeSalesList.append(timedata)
+    #         TimeSalesList.append(timedata)
             
-    except:
-        timedata = pd.DataFrame({"店舗":[shop],"曜日特性":['平日        '],
-                                    "t8":[0],
-                                    "t9":[0],
-                                    "t10":[0],
-                                    "t11":[0],
-                                    "t12":[0],
-                                    "t13":[0],
-                                    "t14":[0],
-                                    "t15":[0],
-                                    "t16":[0],
-                                    "t17":[0],
-                                    "t18":[0],
-                                    "t19":[0],
-                                    "t20":[0],
-                                    "t21":[0],
-                                    "t22":[0],
+    # except:
+    #     timedata = pd.DataFrame({"店舗":[shop],"曜日特性":['平日        '],
+    #                                 "t8":[0],
+    #                                 "t9":[0],
+    #                                 "t10":[0],
+    #                                 "t11":[0],
+    #                                 "t12":[0],
+    #                                 "t13":[0],
+    #                                 "t14":[0],
+    #                                 "t15":[0],
+    #                                 "t16":[0],
+    #                                 "t17":[0],
+    #                                 "t18":[0],
+    #                                 "t19":[0],
+    #                                 "t20":[0],
+    #                                 "t21":[0],
+    #                                 "t22":[0],
 
-                                    })
-        #print(timedata)
+    #                                 })
+    #     #print(timedata)
             
         
-        TimeSalesList.append(timedata)
+    #     TimeSalesList.append(timedata)
 #=============================================================================
 
 
@@ -657,14 +639,14 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
             
             SELECT(shop=shop_key,year=year,month=month,day=day)
             
-        Concat_TimeSaleList = pd.concat(TimeSalesList)
+        #Concat_TimeSaleList = pd.concat(TimeSalesList)
 
         #================================================================ 
         #新コード
-        try :       
-            Today_Delivery = P_DATA(shop_key)
-        except :
-            Today_Delivery = 0
+        # try :       
+        #     Today_Delivery = P_DATA(shop_key)
+        # except :
+        #     Today_Delivery = 0
             
         week = ['月','火','水','木','金','土','日']
         today_1 = TargetDATE
@@ -695,7 +677,7 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
 
         #for shop_name2 in tenpo_pitch :
         print(DOW_Type)
-        SELECT_DATA = Concat_TimeSaleList[(Concat_TimeSaleList["店舗"] == str(shop_name)) & (Concat_TimeSaleList["曜日特性"] == str(DOW_Type))]
+        #SELECT_DATA = Concat_TimeSaleList[(Concat_TimeSaleList["店舗"] == str(shop_name)) & (Concat_TimeSaleList["曜日特性"] == str(DOW_Type))]
         
         # print("一致数",len(SELECT_DATA.query('t12 > 0')))
         # print("合計金額",sum(SELECT_DATA['t12'].values))
@@ -714,10 +696,15 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
                 
             else :
                 
-                if SHOP_KEY2[shop_name] in ToDay_Shift:
-                    
-                    HELP_DATA = pd.DataFrame([{'ヘルプ店舗':SHOP_KEY2[shop_name],'所属店舗':i_4[0],'所属KEY':i_4[1],'社員CD':i_4[2],'氏名':i_4[3],'役職':i_4[4],'販売力':i_4[5],'シフト':i_4[5 + ToDay_Key]}])
-                    Help_List.append(HELP_DATA)
+                # ensure shift is treated as string before membership check
+                try:
+                    if SHOP_KEY2[shop_name] in str(ToDay_Shift):
+                        
+                        HELP_DATA = pd.DataFrame([{'ヘルプ店舗':SHOP_KEY2[shop_name],'所属店舗':i_4[0],'所属KEY':i_4[1],'社員CD':i_4[2],'氏名':i_4[3],'役職':i_4[4],'販売力':i_4[5],'シフト':i_4[5 + ToDay_Key]}])
+                        Help_List.append(HELP_DATA)
+                except Exception:
+                    # ignore non-iterable/unexpected values
+                    pass
                     
         for i_5 in CONCAT_STAFF_LIST_HONBU.values :
             ToDay_Shift = i_5[3 + ToDay_Key]
@@ -726,17 +713,22 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
                 
             else :
                 
-                if SHOP_KEY2[shop_name] in ToDay_Shift:
-                    
-                    HELP_DATA = pd.DataFrame([{'ヘルプ店舗':SHOP_KEY2[shop_name],'所属店舗':'本部','所属KEY':'本部','社員CD':i_5[0],'氏名':i_5[1],'役職':i_5[2],'販売力':i_5[3],'シフト':i_5[3 + ToDay_Key]}])
-                    Help_List.append(HELP_DATA)
+                # ensure shift is treated as string before membership check
+                try:
+                    if SHOP_KEY2[shop_name] in str(ToDay_Shift):
+                        
+                        HELP_DATA = pd.DataFrame([{'ヘルプ店舗':SHOP_KEY2[shop_name],'所属店舗':'本部','所属KEY':'本部','社員CD':i_5[0],'氏名':i_5[1],'役職':i_5[2],'販売力':i_5[3],'シフト':i_5[3 + ToDay_Key]}])
+                        Help_List.append(HELP_DATA)
+                except Exception:
+                    pass
         
         try:
             CONCAT_HELP_LIST = pd.concat(Help_List)
             #print(CONCAT_HELP_LIST)
             
         except :
-            CONCAT_HELP_LIST = []
+            # use an empty DataFrame with expected columns to avoid unbound-variable / indexing issues
+            CONCAT_HELP_LIST = pd.DataFrame(columns=['ヘルプ店舗','所属店舗','所属KEY','社員CD','氏名','役職','販売力','シフト'])
             #print("none")
         #print(CONCAT_HELP_LIST) 
         Help_COLLIST = ['K','L','M','N']   
@@ -745,58 +737,58 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
         #================================================================
         #ここまで
                     
-        for time_zone in range(8,23):
-            target = len(SELECT_DATA.query('t' + str(time_zone) + ' > 0'))
+        # for time_zone in range(8,23):
+        #     target = len(SELECT_DATA.query('t' + str(time_zone) + ' > 0'))
 
 
-            if target == 0:
-                av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
-                var_List.append(av_data)
+        #     if target == 0:
+        #         av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
+        #         var_List.append(av_data)
                 
-            elif time_zone < 10:
-                av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
-                var_List.append(av_data)
-                
-                
-            elif time_zone > 19:
-                av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
-                var_List.append(av_data)  
+        #     elif time_zone < 10:
+        #         av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
+        #         var_List.append(av_data)
                 
                 
+        #     elif time_zone > 19:
+        #         av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[0]})
+        #         var_List.append(av_data)  
                 
-            else:
-                targetsum = sum(SELECT_DATA['t' + str(time_zone)].values)
-                av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[ targetsum / target]})
-                var_List.append(av_data)
                 
-        concat_var_List = pd.concat(var_List)   
-        sum_sales = sum(concat_var_List["売上"].values)
+                
+        #     else:
+        #         targetsum = sum(SELECT_DATA['t' + str(time_zone)].values)
+        #         av_data = pd.DataFrame({"時間帯":["t" + str(time_zone)],"売上":[ targetsum / target]})
+        #         var_List.append(av_data)
+                
+        # concat_var_List = pd.concat(var_List)   
+        # sum_sales = sum(concat_var_List["売上"].values)
         
-        ratio_list = []
-        for row_data in concat_var_List.values:
-            ratio = (row_data[1]/sum_sales)*100
-            ratio2 = "{: .1f}".format(ratio)
-            ratio_list.append(ratio2)
+        # ratio_list = []
+        # for row_data in concat_var_List.values:
+        #     ratio = (row_data[1]/sum_sales)*100
+        #     ratio2 = "{: .1f}".format(ratio)
+        #     ratio_list.append(ratio2)
  
         staff_count = ""
         # 店別詳細
         # tableを作成
     
         #P処理目標時間
-        mini_standerd = 10
-        print("納品数=>",Today_Delivery)
-        if Today_Delivery == 0 :
+        # mini_standerd = 10
+        # print("納品数=>",Today_Delivery)
+        # if Today_Delivery == 0 :
             
-           p_time_str = ""           
+        #    p_time_str = ""           
             
-        else :
-            p_time = int(Today_Delivery) * mini_standerd/60 
-            p_time_hours = int(p_time)
-            p_time_minutes = int(round((p_time - p_time_hours) * 60 / 15) * 15)
-            if p_time_minutes == 60:
-                p_time_hours += 1
-                p_time_minutes = 0
-            p_time_str = f"{p_time_hours}時間{p_time_minutes}分"   
+        # else :
+        #     p_time = int(Today_Delivery) * mini_standerd/60 
+        #     p_time_hours = int(p_time)
+        #     p_time_minutes = int(round((p_time - p_time_hours) * 60 / 15) * 15)
+        #     if p_time_minutes == 60:
+        #         p_time_hours += 1
+        #         p_time_minutes = 0
+        #     p_time_str = f"{p_time_hours}時間{p_time_minutes}分"   
         
         
           
@@ -960,14 +952,15 @@ def print_string(filename,TargetDATE,SHIFTDATA1,SHIFTDATA2):
 # エントリーポイント
 if __name__ == "__main__":
     all_data_frames = []
-    SELECT_FILE_DATA = SHIFT_CREATE(2026,1)
+    SELECT_FILE_DATA = SHIFT_CREATE(USER,2026,3)
 
     for shop_name in tenpo_pitch:
         for DATE_Counter in range(0,31):
-            today = datetime.datetime(2026,1,1 + DATE_Counter)
+            today = datetime.datetime(2026,3,1 + DATE_Counter)
             df = print_string(shop_name, today,SELECT_FILE_DATA[1],SELECT_FILE_DATA[0])
             all_data_frames.append(df)
 
     final_df = pd.concat(all_data_frames, ignore_index=True)
     print(final_df)
-            
+    
+
