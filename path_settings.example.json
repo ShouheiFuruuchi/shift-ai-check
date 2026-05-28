@@ -4,5 +4,26 @@
   "timescheduler_path": "%USERPROFILE%/Desktop/TS/シフトコピー/TimeScheduler.xlsx",
   "timescheduler_backup_path": "%USERPROFILE%/Desktop/TS/シフトコピー/保管/TimeScheduler.xlsx",
   "budget_path": "%USERPROFILE%/Desktop/TS/シフトコピー/年間予算.xlsx",
-  "delivery_path": "%USERPROFILE%/Desktop/TS/シフトコピー/納品スケジュール.xlsx"
+  "delivery_path": "%USERPROFILE%/Desktop/TS/シフトコピー/納品スケジュール.xlsx",
+
+  "sql_server": {
+    "_comment": "POSデータをSQL Serverから取得する場合に設定。不要なら削除またはこのセクションごとコメントアウト。",
+    "server": "localhost",
+    "database": "YOUR_DATABASE_NAME",
+    "pos_table": "YOUR_POS_TABLE_NAME",
+    "trusted_connection": true,
+    "driver": "ODBC Driver 17 for SQL Server",
+
+    "column_map": {
+      "_comment": "左側: スクリプトが期待する列名 / 右側: SQL Server の実際の列名。同じ場合は変更不要。",
+      "店舗コード": "店舗コード",
+      "営業日付": "営業日付",
+      "伝票番号": "伝票番号",
+      "登録日時": "登録日時",
+      "販売金額": "販売金額",
+      "商品コード": "商品コード",
+      "商品名": "商品名",
+      "数量": "数量"
+    }
+  }
 }

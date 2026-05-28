@@ -8,6 +8,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import pandas as pd
 
+from pos_loader import resolve_pos_path
+
 
 @dataclass
 class StepResult:
@@ -26,17 +28,6 @@ def detect_month(attendance_path: Path) -> Tuple[int, int]:
         raise ValueError("attendance_summary.csv から年月を判定できません。")
     latest = dt.max()
     return int(latest.year), int(latest.month)
-
-
-def detect_pos_file(base_dir: Path, year: int) -> Path:
-    cands = sorted(
-        [p for p in base_dir.glob(f"*{year}*.csv") if p.stat().st_size > 100_000_000],
-        key=lambda p: p.stat().st_size,
-        reverse=True,
-    )
-    if not cands:
-        raise FileNotFoundError(f"{year}年のPOS CSVが見つかりません。")
-    return cands[0]
 
 
 def run_step(
@@ -183,10 +174,9 @@ def main() -> None:
         year = auto_year if year is None else year
         month = auto_month if month is None else month
 
-    pos_year = resolve_path(base_dir, args.pos_year) if args.pos_year else detect_pos_file(base_dir, year)
-
-    pos_2024 = resolve_path(base_dir, args.pos_2024) if args.pos_2024 else detect_pos_file(base_dir, 2024)
-    pos_2025 = resolve_path(base_dir, args.pos_2025) if args.pos_2025 else detect_pos_file(base_dir, 2025)
+    pos_year = resolve_pos_path(year, args.pos_year, base_dir)
+    pos_2024 = resolve_pos_path(2024, args.pos_2024, base_dir)
+    pos_2025 = resolve_pos_path(2025, args.pos_2025, base_dir)
 
     if args.output_dir == "analysis_suite_output":
         out_dir = (base_dir / args.output_dir).resolve()

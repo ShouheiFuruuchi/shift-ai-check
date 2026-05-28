@@ -52,6 +52,9 @@ feedback_*.xlsx
 # ===== 分析最適化出力フォルダ =====
 staffing_optimization_output*/
 
+# ===== SQL Server POSキャッシュ（自動生成・機密データ） =====
+.pos_cache/
+
 # ===== その他の出力ファイル =====
 feedback_*.md
 product_feedback_*.md
